@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar1 Ranking Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #2980b9;
+        }
+        th.sort-asc::after {
+            content: ' ▲';
+            font-size: 0.8em;
+        }
+        th.sort-desc::after {
+            content: ' ▼';
+            font-size: 0.8em;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .points {
+            text-align: right;
+        }
+        .points.low-points {
+            background-color: #ffcccc; /* Red */
+        }
+        .points.mid-points {
+            background-color: #ffffcc; /* Yellow */
+        }
+        .points.high-points {
+            background-color: #ccffcc; /* Green */
+        }
+        .points.white-points {
+            background-color: #ffffff; /* White */
+        }
+        .sum-col {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .mode-selector {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #eee;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        .mode-selector label {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="dashboardTitle">Bar1 Ranking Dashboard</h1>
+        
+        <div class="controls">
+            <div class="mode-selector">
+                <span>View Mode:</span>
+                <label><input type="radio" name="viewMode" value="normal" checked onchange="handleModeChange('normal')"> Normal</label>
+                <label><input type="radio" name="viewMode" value="eco" onchange="handleModeChange('eco')"> Eco</label>
+            </div>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search for names..." oninput="handleSearch()">
+        </div>
+
+        <div id="tableContainer">
+            <div class="no-data">No data available for this week.</div>
+        </div>
+
+        <div class="footer">
+            Generated on 2026-04-26 00:05:11
+        </div>
+    </div>
+
+    <script>
+        const allData = [{"event": "vs", "year": 2026, "week": 17, "entries": [], "days": [{"date": "2026-04-20", "entries": [{"name": "grandmaster ae", "points": 65405038}, {"name": "DiOuDiOu", "points": 50479241}, {"name": "JKela", "points": 48305633}, {"name": "Quartier General", "points": 48011047}, {"name": "vans", "points": 43970580}, {"name": "grginjoo", "points": 42507813}, {"name": "Macu230", "points": 39285783}, {"name": "noursnou", "points": 39041416}, {"name": "Officer1898", "points": 38976087}, {"name": "BibsoDono", "points": 36554004}, {"name": "Rofffa", "points": 35672483}, {"name": "RIP 74", "points": 34910703}, {"name": "OfOLex0", "points": 32848265}, {"name": "Abby473", "points": 32311685}, {"name": "lasosotte", "points": 32156718}, {"name": "J xx", "points": 29098562}, {"name": "sappheiros", "points": 28649864}, {"name": "LeOnXD", "points": 28340504}, {"name": "ch2ris72", "points": 27291345}, {"name": "Antho79", "points": 25864335}, {"name": "Katoand team", "points": 21885408}, {"name": "Christian z900sE", "points": 21695625}, {"name": "Wildbeatle", "points": 21638323}, {"name": "ArcticWanderer", "points": 20440354}, {"name": "bachibouzouc", "points": 19136877}, {"name": "BatmaNikos", "points": 17967646}, {"name": "Ced12", "points": 17026936}, {"name": "Dr Coppers", "points": 16473620}, {"name": "Fifi junior", "points": 15892109}, {"name": "Death Bar", "points": 15590298}, {"name": "FedericaCi", "points": 14540604}, {"name": "Just Doc It", "points": 14126004}, {"name": "Q The Entity", "points": 13995340}, {"name": "Agatiou", "points": 13657662}, {"name": "Yuhe", "points": 13394247}, {"name": "Arezander", "points": 11682251}, {"name": "VANOU", "points": 11575406}, {"name": "Julio2387", "points": 11465705}, {"name": "Choupinette666", "points": 11409713}, {"name": "ehntjtzn", "points": 10667123}, {"name": "Pink Acid", "points": 10573942}, {"name": "Zarobiony", "points": 10502925}, {"name": "Fifi 60", "points": 10450045}, {"name": "Sofiiiia", "points": 10162081}, {"name": "WIMMES", "points": 10093096}, {"name": "Phaticus", "points": 9477789}, {"name": "Ctjrmouhaha", "points": 9379909}, {"name": "Nepo SKL", "points": 9079508}, {"name": "combat1985", "points": 8997534}, {"name": "imanolmec", "points": 8964356}, {"name": "pio78", "points": 8631605}, {"name": "French Touch", "points": 8360441}, {"name": "Maarriusz", "points": 8257673}, {"name": "Gonia27", "points": 8245493}, {"name": "DannyQP", "points": 8139892}, {"name": "YWHITE", "points": 8063336}, {"name": "DaveyBoySmith", "points": 7982625}, {"name": "Demtercity", "points": 7785228}, {"name": "xmikadox", "points": 7630452}, {"name": "Swett344", "points": 7628068}, {"name": "Mephistoo92", "points": 7422520}, {"name": "Jurjevna", "points": 7390173}, {"name": "Achillinus", "points": 7088439}, {"name": "SuperBikez", "points": 6622197}, {"name": "Ambiguoo", "points": 6584888}, {"name": "NotMyFoult", "points": 5116915}, {"name": "Ersin69", "points": 4046529}, {"name": "Tomek 48", "points": 3883603}, {"name": "Muhehe 2", "points": 2736378}, {"name": "Kartagin", "points": 1103090}]}, {"date": "2026-04-21", "entries": [{"name": "grginjoo", "points": 30219600}, {"name": "Demtercity", "points": 20309100}, {"name": "noursnou", "points": 18052650}, {"name": "Maarriusz", "points": 16976250}, {"name": "Q The Entity", "points": 16764000}, {"name": "FedericaCi", "points": 16549650}, {"name": "Sofiiiia", "points": 15622350}, {"name": "grandmaster ae", "points": 12033750}, {"name": "Officer1898", "points": 15204900}, {"name": "lasosotte", "points": 14962500}, {"name": "Yuhe", "points": 14717100}, {"name": "Ersin69", "points": 14558850}, {"name": "ArcticWanderer", "points": 13801800}, {"name": "DaveyBoySmith", "points": 13729500}, {"name": "OfOLex0", "points": 13205550}, {"name": "Nepo SKL", "points": 12898950}, {"name": "ch2ris72", "points": 12516750}, {"name": "Rofffa", "points": 12388950}, {"name": "Fifi junior", "points": 12259050}, {"name": "Just Doc It", "points": 11519550}, {"name": "Fifi 60", "points": 10393800}, {"name": "vans", "points": 10162050}, {"name": "Jurjevna", "points": 10019325}, {"name": "DiOuDiOu", "points": 9900300}, {"name": "Choupinette666", "points": 9695700}, {"name": "Ced12", "points": 9651150}, {"name": "bachibouzouc", "points": 9312750}, {"name": "Ctjrmouhaha", "points": 9209100}, {"name": "pio78", "points": 9026100}, {"name": "VANOU", "points": 8865900}, {"name": "Tomek 48", "points": 8757900}, {"name": "Katoand team", "points": 8500950}, {"name": "sappheiros", "points": 8455650}, {"name": "Christian z900sE", "points": 8395800}, {"name": "Zarobiony", "points": 8153850}, {"name": "BibsoDono", "points": 8115600}, {"name": "Achillinus", "points": 8010600}, {"name": "combat1985", "points": 7996950}, {"name": "Swett344", "points": 7980450}, {"name": "Julio2387", "points": 7977300}, {"name": "WIMMES", "points": 7958850}, {"name": "ehntjtzn", "points": 7909350}, {"name": "Pink Acid", "points": 7862400}, {"name": "Wildbeatle", "points": 7816200}, {"name": "JKela", "points": 7702400}, {"name": "Arezander", "points": 7692900}, {"name": "Antho79", "points": 7650150}, {"name": "imanolmec", "points": 7544700}, {"name": "Quartier General", "points": 7413150}, {"name": "Dr Coppers", "points": 7318800}, {"name": "xmikadox", "points": 7281150}, {"name": "BatmaNikos", "points": 7201650}, {"name": "Mephistoo92", "points": 6960000}, {"name": "Macu230", "points": 6253050}, {"name": "RIP 74", "points": 5976104}, {"name": "Agatiou", "points": 5524500}, {"name": "YWHITE", "points": 4610400}, {"name": "Phaticus", "points": 4491000}, {"name": "NotMyFoult", "points": 4474050}, {"name": "Gonia27", "points": 4453420}, {"name": "Abby473", "points": 4450950}, {"name": "LeOnXD", "points": 4032800}, {"name": "Muhehe 2", "points": 3814200}, {"name": "Death Bar", "points": 3784500}, {"name": "DannyQP", "points": 3775500}, {"name": "French Touch", "points": 3073451}, {"name": "SuperBikez", "points": 2880000}, {"name": "Ambiguoo", "points": 2824260}, {"name": "Kartagin", "points": 679005}]}, {"date": "2026-04-22", "entries": [{"name": "grginjoo", "points": 44068350}, {"name": "Macu230", "points": 37344600}, {"name": "Just Doc It", "points": 33585700}, {"name": "Fifi 60", "points": 28379050}, {"name": "noursnou", "points": 22357850}, {"name": "grandmaster ae", "points": 19869750}, {"name": "ArcticWanderer", "points": 19263700}, {"name": "Nepo SKL", "points": 18990550}, {"name": "Maarriusz", "points": 17129450}, {"name": "lasosotte", "points": 15651400}, {"name": "ch2ris72", "points": 15637700}, {"name": "Yuhe", "points": 15456900}, {"name": "Antho79", "points": 15327000}, {"name": "RIP 74", "points": 15297033}, {"name": "YWHITE", "points": 14421950}, {"name": "Rofffa", "points": 14405600}, {"name": "Zarobiony", "points": 14342800}, {"name": "DaveyBoySmith", "points": 14062750}, {"name": "Ced12", "points": 14041900}, {"name": "Officer1898", "points": 13619400}, {"name": "Choupinette666", "points": 12862900}, {"name": "Wildbeatle", "points": 12735850}, {"name": "pio78", "points": 12033400}, {"name": "Julio2387", "points": 11937100}, {"name": "Sofiiiia", "points": 11762150}, {"name": "Jurjevna", "points": 11402585}, {"name": "OfOLex0", "points": 11390300}, {"name": "DiOuDiOu", "points": 11316700}, {"name": "WIMMES", "points": 11202150}, {"name": "SuperBikez", "points": 10832750}, {"name": "Ctjrmouhaha", "points": 10702600}, {"name": "J xx", "points": 10702200}, {"name": "combat1985", "points": 10612200}, {"name": "BibsoDono", "points": 9860250}, {"name": "Katoand team", "points": 9767450}, {"name": "Swett344", "points": 9539650}, {"name": "FedericaCi", "points": 9344800}, {"name": "ehntjtzn", "points": 9076000}, {"name": "Q The Entity", "points": 8745050}, {"name": "Demtercity", "points": 8586200}, {"name": "bachibouzouc", "points": 8433450}, {"name": "Agatiou", "points": 8187900}, {"name": "xmikadox", "points": 8110550}, {"name": "DannyQP", "points": 7990030}, {"name": "sappheiros", "points": 7704650}, {"name": "Fifi junior", "points": 7627050}, {"name": "Pink Acid", "points": 7438600}, {"name": "imanolmec", "points": 7426650}, {"name": "JKela", "points": 7398100}, {"name": "Phaticus", "points": 7353600}, {"name": "Quartier General", "points": 7349450}, {"name": "VANOU", "points": 7233700}, {"name": "Mephistoo92", "points": 7233000}, {"name": "BatmaNikos", "points": 7226950}, {"name": "Arezander", "points": 6716000}, {"name": "Christian z900sE", "points": 6569050}, {"name": "Gonia27", "points": 5689622}, {"name": "French Touch", "points": 4723063}, {"name": "vans", "points": 4644050}, {"name": "Dr Coppers", "points": 3884200}, {"name": "Ersin69", "points": 3599800}, {"name": "Death Bar", "points": 3551900}, {"name": "Tomek 48", "points": 3500200}, {"name": "Abby473", "points": 3284000}, {"name": "NotMyFoult", "points": 2916750}, {"name": "LeOnXD", "points": 2504490}, {"name": "Achillinus", "points": 2302500}, {"name": "Ambiguoo", "points": 2259240}, {"name": "Kartagin", "points": 656200}]}, {"date": "2026-04-23", "entries": [{"name": "grginjoo", "points": 103127758}, {"name": "xmikadox", "points": 79363030}, {"name": "OfOLex0", "points": 50583252}, {"name": "Demtercity", "points": 45066725}, {"name": "SuperBikez", "points": 44279819}, {"name": "Death Bar", "points": 43598036}, {"name": "Macu230", "points": 40722020}, {"name": "grandmaster ae", "points": 36749534}, {"name": "Rofffa", "points": 40704955}, {"name": "sappheiros", "points": 40477965}, {"name": "Agatiou", "points": 39489674}, {"name": "ArcticWanderer", "points": 36610402}, {"name": "lasosotte", "points": 35661582}, {"name": "ch2ris72", "points": 35051893}, {"name": "Sofiiiia", "points": 33877699}, {"name": "Just Doc It", "points": 33078313}, {"name": "Christian z900sE", "points": 30283907}, {"name": "Yuhe", "points": 29009000}, {"name": "Wildbeatle", "points": 28761818}, {"name": "VANOU", "points": 28066569}, {"name": "LeOnXD", "points": 27694092}, {"name": "vans", "points": 27049428}, {"name": "Maarriusz", "points": 26984000}, {"name": "Julio2387", "points": 26755493}, {"name": "Nepo SKL", "points": 26631501}, {"name": "Choupinette666", "points": 26496949}, {"name": "Zarobiony", "points": 25881862}, {"name": "combat1985", "points": 25521086}, {"name": "Fifi 60", "points": 25325105}, {"name": "Fifi junior", "points": 25105500}, {"name": "Q The Entity", "points": 24518526}, {"name": "Katoand team", "points": 24476863}, {"name": "Gonia27", "points": 24097753}, {"name": "Quartier General", "points": 24051792}, {"name": "Dr Coppers", "points": 23936055}, {"name": "Antho79", "points": 23771693}, {"name": "DaveyBoySmith", "points": 23609245}, {"name": "Abby473", "points": 23546540}, {"name": "DiOuDiOu", "points": 22856563}, {"name": "pio78", "points": 22741357}, {"name": "noursnou", "points": 22584500}, {"name": "Ersin69", "points": 22342619}, {"name": "Ctjrmouhaha", "points": 22272705}, {"name": "Officer1898", "points": 21782681}, {"name": "YWHITE", "points": 21234591}, {"name": "Mephistoo92", "points": 21213570}, {"name": "JKela", "points": 20732005}, {"name": "Arezander", "points": 20659285}, {"name": "RIP 74", "points": 19061673}, {"name": "WIMMES", "points": 18862524}, {"name": "Muhehe 2", "points": 17899500}, {"name": "Achillinus", "points": 17820439}, {"name": "Phaticus", "points": 17621917}, {"name": "Ced12", "points": 17477313}, {"name": "FedericaCi", "points": 16032780}, {"name": "Jurjevna", "points": 15100621}, {"name": "bachibouzouc", "points": 13950000}, {"name": "Tomek 48", "points": 13021292}, {"name": "Swett344", "points": 12810440}, {"name": "NotMyFoult", "points": 12499924}, {"name": "French Touch", "points": 11272223}, {"name": "ehntjtzn", "points": 10827419}, {"name": "BibsoDono", "points": 10229500}, {"name": "DannyQP", "points": 8638750}, {"name": "Ambiguoo", "points": 7882658}, {"name": "imanolmec", "points": 7682530}, {"name": "BatmaNikos", "points": 7502210}, {"name": "Pink Acid", "points": 7286361}, {"name": "J xx", "points": 3206217}, {"name": "Dragonrouge51", "points": 2764949}]}, {"date": "2026-04-24", "entries": [{"name": "grandmaster ae", "points": 39414630}, {"name": "ArcticWanderer", "points": 29037420}, {"name": "ehntjtzn", "points": 27128310}, {"name": "grginjoo", "points": 20298450}, {"name": "Just Doc It", "points": 18724470}, {"name": "VANOU", "points": 17821822}, {"name": "Choupinette666", "points": 16870530}, {"name": "JKela", "points": 15898287}, {"name": "SuperBikez", "points": 15651210}, {"name": "Fifi junior", "points": 14994000}, {"name": "Ctjrmouhaha", "points": 14919720}, {"name": "DiOuDiOu", "points": 12721050}, {"name": "Death Bar", "points": 12295410}, {"name": "Demtercity", "points": 11600250}, {"name": "pio78", "points": 10927320}, {"name": "ch2ris72", "points": 10577760}, {"name": "Maarriusz", "points": 10563703}, {"name": "OfOLex0", "points": 10476150}, {"name": "combat1985", "points": 10455180}, {"name": "lasosotte", "points": 10335780}, {"name": "Macu230", "points": 9811132}, {"name": "Sofiiiia", "points": 9804780}, {"name": "WIMMES", "points": 9268320}, {"name": "Zarobiony", "points": 9126150}, {"name": "Julio2387", "points": 8966364}, {"name": "bachibouzouc", "points": 8852730}, {"name": "Muhehe 2", "points": 8828700}, {"name": "sappheiros", "points": 8769090}, {"name": "Katoand team", "points": 8273520}, {"name": "Pink Acid", "points": 8066310}, {"name": "Fifi 60", "points": 7975350}, {"name": "BibsoDono", "points": 7956270}, {"name": "Nepo SKL", "points": 7726196}, {"name": "Antho79", "points": 7710240}, {"name": "Wildbeatle", "points": 7679760}, {"name": "Achillinus", "points": 7496760}, {"name": "Quartier General", "points": 7495950}, {"name": "Mephistoo92", "points": 7391730}, {"name": "DaveyBoySmith", "points": 7297800}, {"name": "Officer1898", "points": 6753600}, {"name": "FedericaCi", "points": 6518700}, {"name": "Ced12", "points": 6429855}, {"name": "imanolmec", "points": 5796690}, {"name": "xmikadox", "points": 5644555}, {"name": "YWHITE", "points": 5277930}, {"name": "Arezander", "points": 5183070}, {"name": "Dr Coppers", "points": 4983600}, {"name": "Tomek 48", "points": 4978050}, {"name": "vans", "points": 4938480}, {"name": "Jurjevna", "points": 4854790}, {"name": "RIP 74", "points": 4638860}, {"name": "noursnou", "points": 4600542}, {"name": "Agatiou", "points": 4520760}, {"name": "Ersin69", "points": 4516950}, {"name": "DannyQP", "points": 4391940}, {"name": "Q The Entity", "points": 4309980}, {"name": "Rofffa", "points": 4244670}, {"name": "French Touch", "points": 3847215}, {"name": "Gonia27", "points": 3846914}, {"name": "Yuhe", "points": 3838800}, {"name": "BatmaNikos", "points": 3736600}, {"name": "Christian z900sE", "points": 3336135}, {"name": "Swett344", "points": 3264000}, {"name": "Abby473", "points": 3172890}, {"name": "LeOnXD", "points": 2984570}, {"name": "Ambiguoo", "points": 2619458}, {"name": "Phaticus", "points": 2477400}, {"name": "Mistinguette45", "points": 2328175}, {"name": "NotMyFoult", "points": 1978350}, {"name": "J xx", "points": 1470000}, {"name": "Dragonrouge51", "points": 1290000}]}]}];
+        let currentSort = { column: 'total', direction: 'desc' };
+        let currentMode = 'normal'; // 'normal' or 'eco'
+        let fullPlayersList = [];
+        let filteredPlayersList = [];
+        let allDates = [];
+        let currentSearch = '';
+
+        function handleModeChange(mode) {
+            currentMode = mode;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('tableContainer');
+            if (filteredPlayersList.length === 0) {
+                container.innerHTML = `<div class="no-data">${currentSearch ? 'No matches found.' : 'No rankings found for this period.'}</div>`;
+                return;
+            }
+
+            // Build Table
+            let html = '<table><thead><tr>';
+            
+            const getSortClass = (col) => {
+                if (currentSort.column === col) {
+                    return currentSort.direction === 'asc' ? 'class="sort-asc"' : 'class="sort-desc"';
+                }
+                return '';
+            };
+
+            html += `<th onclick="sortTable('rank')" ${getSortClass('rank')}>Rank</th>`;
+            html += `<th onclick="sortTable('name')" ${getSortClass('name')}>Player</th>`;
+            
+            allDates.forEach((date, idx) => {
+                const dParts = date.split('-');
+                const label = dParts.length === 3 ? `${dParts[2]}.${dParts[1]}.` : date;
+                html += `<th class="points ${currentSort.column === 'date_' + idx ? (currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc') : ''}" onclick="sortTable('date_${idx}')">${label}</th>`;
+            });
+            
+            html += `<th class="points sum-col ${getSortClass('total')}" onclick="sortTable('total')">Total</th>`;
+            html += '</tr></thead><tbody>';
+            
+            filteredPlayersList.forEach((player) => {
+                html += '<tr>';
+                html += `<td>${player.rank}</td>`;
+                html += `<td>${player.name}</td>`;
+                
+                allDates.forEach(date => {
+                    const p = player.dailyPoints[date];
+                    const val = p !== undefined ? p : 0;
+                    const displayPoints = val.toLocaleString('en-US');
+                    
+                    let colorClass = '';
+                    if (currentMode === 'eco') {
+                        if (val <= 2300000) colorClass = 'low-points';
+                        else colorClass = 'high-points';
+                    } else {
+                        // Normal mode
+                        if (val <= 2300000) colorClass = 'low-points';
+                        else if (val < 7200000) colorClass = 'mid-points';
+                        else colorClass = 'high-points';
+                    }
+                    
+                    html += `<td class="points ${colorClass}">${displayPoints}</td>`;
+                });
+                
+                let totalColorClass = '';
+                const total = player.total;
+                if (currentMode === 'eco') {
+                    // Eco: >4x2.3M (9.2M) and <45M green, else white
+                    if (total > 9200000 && total < 45000000) {
+                        totalColorClass = 'high-points';
+                    } else {
+                        totalColorClass = 'white-points';
+                    }
+                } else {
+                    // Normal: <4x2.3M (9.2M) red, <4x7.2M (28.8M) yellow, else green
+                    if (total < 9200000) totalColorClass = 'low-points';
+                    else if (total < 28800000) totalColorClass = 'mid-points';
+                    else totalColorClass = 'high-points';
+                }
+
+                html += `<td class="points sum-col ${totalColorClass}">${player.total.toLocaleString('en-US')}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function handleSearch() {
+            currentSearch = document.getElementById('searchInput').value.toLowerCase();
+            applyFilter();
+        }
+
+        function applyFilter() {
+            if (!currentSearch) {
+                filteredPlayersList = [...fullPlayersList];
+            } else {
+                filteredPlayersList = fullPlayersList.filter(p => p.name.toLowerCase().includes(currentSearch));
+            }
+            renderTable();
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = (column === 'name' || column === 'rank') ? 'asc' : 'desc';
+            }
+
+            fullPlayersList.sort((a, b) => {
+                let valA, valB;
+                if (column === 'rank') {
+                    valA = a.rank;
+                    valB = b.rank;
+                } else if (column === 'name') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } else if (column === 'total') {
+                    valA = a.total;
+                    valB = b.total;
+                } else if (column.startsWith('date_')) {
+                    const idx = parseInt(column.split('_')[1]);
+                    const date = allDates[idx];
+                    valA = a.dailyPoints[date] || 0;
+                    valB = b.dailyPoints[date] || 0;
+                }
+
+                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            applyFilter();
+        }
+        
+        function init() {
+            const container = document.getElementById('tableContainer');
+            const title = document.getElementById('dashboardTitle');
+            
+            if (!allData || allData.length === 0) {
+                container.innerHTML = '<div class="no-data">No data available.</div>';
+                return;
+            }
+            
+            const data = allData[0];
+            let titleText = `Bar1 Ranking Dashboard - ${data.event.toUpperCase()} ${data.year}, Week ${data.week}`;
+            
+            const days = data.days || [];
+            if (days.length === 1) {
+                const dParts = days[0].date.split('-');
+                if (dParts.length === 3) {
+                    titleText = `Bar1 Ranking Dashboard - ${dParts[2]}.${dParts[1]}.${dParts[0]}`;
+                }
+            }
+            title.textContent = titleText;
+            
+            allDates = days.map(d => d.date).sort();
+            
+            const playersMap = new Map();
+            days.forEach(day => {
+                const date = day.date;
+                day.entries.forEach(entry => {
+                    if (!playersMap.has(entry.name)) {
+                        playersMap.set(entry.name, {
+                            name: entry.name,
+                            dailyPoints: {},
+                            total: 0
+                        });
+                    }
+                    const player = playersMap.get(entry.name);
+                    player.dailyPoints[date] = entry.points;
+                });
+            });
+            
+            fullPlayersList = Array.from(playersMap.values());
+            fullPlayersList.forEach(player => {
+                let sum = 0;
+                allDates.forEach(date => {
+                    sum += (player.dailyPoints[date] || 0);
+                });
+                player.total = sum;
+            });
+            
+            // Initial sort by total points descending to assign ranks
+            fullPlayersList.sort((a, b) => b.total - a.total);
+            fullPlayersList.forEach((p, i) => p.rank = i + 1);
+            
+            applyFilter();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
