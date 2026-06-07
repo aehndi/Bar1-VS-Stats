@@ -13,8 +13,17 @@ Die Berichte werden im Ordner `reports/` abgelegt, unterteilt nach Jahren und Ka
 2. Kopieren Sie Ihre HTML- und Markdown-Dateien in diesen Ordner.
 3. Die `index.html` im Hauptverzeichnis wird automatisch durch eine GitHub Action aktualisiert, sobald Sie die Dateien pushen.
 
-### Automatisierung
+### Automatisierung & Manuelle Aktualisierung
 Es ist ein Python-Skript `update_index.py` und ein GitHub Workflow vorhanden, die automatisch die `index.html` basierend auf den Inhalten im `reports/` Ordner neu generieren.
+
+#### Manuelle Ausführung
+Wenn Sie die `index.html` lokal aktualisieren möchten, können Sie das Skript manuell aufrufen:
+
+```bash
+python update_index.py
+```
+
+*Voraussetzung: Python 3 muss installiert sein.*
 
 ### Beispiel Struktur
 ```
