@@ -30,4 +30,4 @@ This evaluation is based on the aggregated results of the Block Extractor.
 | 24 | Dragonrouge51 | 532.500 | **532.500** |
 | 25 | Kartagin | 377.000 | **377.000** |
 
-Generated on 2026-06-07 15:02:08
+Generated on 2026-06-07 15:19:48
