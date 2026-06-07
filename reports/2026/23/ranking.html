@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar1 Ranking Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #2980b9;
+        }
+        th.sort-asc::after {
+            content: ' ▲';
+            font-size: 0.8em;
+        }
+        th.sort-desc::after {
+            content: ' ▼';
+            font-size: 0.8em;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .points {
+            text-align: right;
+        }
+        .points.low-points {
+            background-color: #ffcccc; /* Red */
+        }
+        .points.mid-points {
+            background-color: #ffffcc; /* Yellow */
+        }
+        .points.high-points {
+            background-color: #ccffcc; /* Green */
+        }
+        .points.white-points {
+            background-color: #ffffff; /* White */
+        }
+        .sum-col {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .mode-selector {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #eee;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        .mode-selector label {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="dashboardTitle">Bar1 Ranking Dashboard</h1>
+        
+        <div class="controls">
+            <div class="mode-selector">
+                <span>View Mode:</span>
+                <label><input type="radio" name="viewMode" value="normal" checked onchange="handleModeChange('normal')"> Normal</label>
+                <label><input type="radio" name="viewMode" value="eco" onchange="handleModeChange('eco')"> Eco</label>
+            </div>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search for names..." oninput="handleSearch()">
+        </div>
+
+        <div id="tableContainer">
+            <div class="no-data">No data available for this week.</div>
+        </div>
+
+        <div class="footer">
+            Generated on 2026-06-07 15:02:08
+        </div>
+    </div>
+
+    <script>
+        const allData = [{"event": "vs", "year": 2026, "week": 23, "entries": [], "days": [{"date": "2026-06-01", "entries": [{"name": "RIP 74", "points": 6471820}, {"name": "combat1985", "points": 5968024}, {"name": "YWHITE", "points": 5651953}, {"name": "Dr Coppers", "points": 4785892}, {"name": "Oscar Palencia", "points": 4639682}, {"name": "Muhehe 2", "points": 4547895}, {"name": "loulali", "points": 4457038}, {"name": "grandmaster ae", "points": 47296774}, {"name": "Django 1692", "points": 4112614}, {"name": "xmikadox", "points": 4073591}, {"name": "Julio2387", "points": 4060394}, {"name": "Topolunita", "points": 3508095}, {"name": "Christian z900SE", "points": 3471250}, {"name": "MIRO 62", "points": 3109575}, {"name": "DiOuDiOu", "points": 3070377}, {"name": "Ateneaa24", "points": 2966586}, {"name": "grginjoo", "points": 2791875}, {"name": "frida24", "points": 2214108}, {"name": "TCB9001", "points": 2212512}, {"name": "Danwize", "points": 2000625}, {"name": "Officer1898", "points": 1900313}, {"name": "Pionio", "points": 1150876}, {"name": "NotMyFoult", "points": 836250}, {"name": "Dragonrouge51", "points": 532500}, {"name": "Kartagin", "points": 377000}]}]}];
+        let currentSort = { column: 'total', direction: 'desc' };
+        let currentMode = 'normal'; // 'normal' or 'eco'
+        let fullPlayersList = [];
+        let filteredPlayersList = [];
+        let allDates = [];
+        let currentSearch = '';
+
+        function handleModeChange(mode) {
+            currentMode = mode;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('tableContainer');
+            if (filteredPlayersList.length === 0) {
+                container.innerHTML = `<div class="no-data">${currentSearch ? 'No matches found.' : 'No rankings found for this period.'}</div>`;
+                return;
+            }
+
+            // Build Table
+            let html = '<table><thead><tr>';
+            
+            const getSortClass = (col) => {
+                if (currentSort.column === col) {
+                    return currentSort.direction === 'asc' ? 'class="sort-asc"' : 'class="sort-desc"';
+                }
+                return '';
+            };
+
+            html += `<th onclick="sortTable('rank')" ${getSortClass('rank')}>Rank</th>`;
+            html += `<th onclick="sortTable('name')" ${getSortClass('name')}>Player</th>`;
+            
+            allDates.forEach((date, idx) => {
+                const dParts = date.split('-');
+                const label = dParts.length === 3 ? `${dParts[2]}.${dParts[1]}.` : date;
+                html += `<th class="points ${currentSort.column === 'date_' + idx ? (currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc') : ''}" onclick="sortTable('date_${idx}')">${label}</th>`;
+            });
+            
+            html += `<th class="points sum-col ${getSortClass('total')}" onclick="sortTable('total')">Total</th>`;
+            html += '</tr></thead><tbody>';
+            
+            filteredPlayersList.forEach((player) => {
+                html += '<tr>';
+                html += `<td>${player.rank}</td>`;
+                html += `<td>${player.name}</td>`;
+                
+                allDates.forEach(date => {
+                    const p = player.dailyPoints[date];
+                    const val = p !== undefined ? p : 0;
+                    const displayPoints = val.toLocaleString('en-US');
+                    
+                    let colorClass = '';
+                    if (currentMode === 'eco') {
+                        if (val <= 2300000) colorClass = 'low-points';
+                        else colorClass = 'high-points';
+                    } else {
+                        // Normal mode
+                        if (val <= 2300000) colorClass = 'low-points';
+                        else if (val < 7200000) colorClass = 'mid-points';
+                        else colorClass = 'high-points';
+                    }
+                    
+                    html += `<td class="points ${colorClass}">${displayPoints}</td>`;
+                });
+                
+                let totalColorClass = '';
+                const total = player.total;
+                if (currentMode === 'eco') {
+                    // Eco: >4x2.3M (9.2M) and <45M green, else white
+                    if (total > 9200000 && total < 45000000) {
+                        totalColorClass = 'high-points';
+                    } else {
+                        totalColorClass = 'white-points';
+                    }
+                } else {
+                    // Normal: <4x2.3M (9.2M) red, <4x7.2M (28.8M) yellow, else green
+                    if (total < 9200000) totalColorClass = 'low-points';
+                    else if (total < 28800000) totalColorClass = 'mid-points';
+                    else totalColorClass = 'high-points';
+                }
+
+                html += `<td class="points sum-col ${totalColorClass}">${player.total.toLocaleString('en-US')}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function handleSearch() {
+            currentSearch = document.getElementById('searchInput').value.toLowerCase();
+            applyFilter();
+        }
+
+        function applyFilter() {
+            if (!currentSearch) {
+                filteredPlayersList = [...fullPlayersList];
+            } else {
+                filteredPlayersList = fullPlayersList.filter(p => p.name.toLowerCase().includes(currentSearch));
+            }
+            renderTable();
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = (column === 'name' || column === 'rank') ? 'asc' : 'desc';
+            }
+
+            fullPlayersList.sort((a, b) => {
+                let valA, valB;
+                if (column === 'rank') {
+                    valA = a.rank;
+                    valB = b.rank;
+                } else if (column === 'name') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } else if (column === 'total') {
+                    valA = a.total;
+                    valB = b.total;
+                } else if (column.startsWith('date_')) {
+                    const idx = parseInt(column.split('_')[1]);
+                    const date = allDates[idx];
+                    valA = a.dailyPoints[date] || 0;
+                    valB = b.dailyPoints[date] || 0;
+                }
+
+                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            applyFilter();
+        }
+        
+        function init() {
+            const container = document.getElementById('tableContainer');
+            const title = document.getElementById('dashboardTitle');
+            
+            if (!allData || allData.length === 0) {
+                container.innerHTML = '<div class="no-data">No data available.</div>';
+                return;
+            }
+            
+            const data = allData[0];
+            let titleText = `Bar1 Ranking Dashboard - ${data.event.toUpperCase()} ${data.year}, Week ${data.week}`;
+            
+            const days = data.days || [];
+            if (days.length === 1) {
+                const dParts = days[0].date.split('-');
+                if (dParts.length === 3) {
+                    titleText = `Bar1 Ranking Dashboard - ${dParts[2]}.${dParts[1]}.${dParts[0]}`;
+                }
+            }
+            title.textContent = titleText;
+            
+            allDates = days.map(d => d.date).sort();
+            
+            const playersMap = new Map();
+            days.forEach(day => {
+                const date = day.date;
+                day.entries.forEach(entry => {
+                    if (!playersMap.has(entry.name)) {
+                        playersMap.set(entry.name, {
+                            name: entry.name,
+                            dailyPoints: {},
+                            total: 0
+                        });
+                    }
+                    const player = playersMap.get(entry.name);
+                    player.dailyPoints[date] = entry.points;
+                });
+            });
+            
+            fullPlayersList = Array.from(playersMap.values());
+            fullPlayersList.forEach(player => {
+                let sum = 0;
+                allDates.forEach(date => {
+                    sum += (player.dailyPoints[date] || 0);
+                });
+                player.total = sum;
+            });
+            
+            // Initial sort by total points descending to assign ranks
+            fullPlayersList.sort((a, b) => b.total - a.total);
+            fullPlayersList.forEach((p, i) => p.rank = i + 1);
+            
+            applyFilter();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
